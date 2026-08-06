@@ -1,4 +1,4 @@
-package org.example.weatherdashboard;
+package com.example.weatherdashboard;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
@@ -19,7 +19,10 @@ public class WeatherService {
         this.apiKey = System.getenv("OPENWEATHER_API_KEY");
     }
 
-    public WeatherResponse getCurrentWeather(String city) {
+    public com.example.weatherdashboard.WeatherResponse getCurrentWeather(
+            double latitude,
+            double longitude
+    ) {
         if (apiKey == null || apiKey.isBlank()) {
             throw new IllegalStateException(
                     "OPENWEATHER_API_KEY environment variable is not set."
@@ -28,16 +31,21 @@ public class WeatherService {
 
         String url = UriComponentsBuilder
                 .fromUriString(WEATHER_URL)
-                .queryParam("q", city)
+                .queryParam("lat", latitude)
+                .queryParam("lon", longitude)
                 .queryParam("appid", apiKey)
                 .queryParam("units", "imperial")
                 .toUriString();
 
         try {
-            return restTemplate.getForObject(url, WeatherResponse.class);
+            return restTemplate.getForObject(
+                    url,
+                    WeatherResponse.class
+            );
         } catch (RestClientException exception) {
             throw new RuntimeException(
-                    "Unable to retrieve weather for " + city + ".",
+                    "Unable to retrieve weather for coordinates "
+                            + latitude + ", " + longitude + ".",
                     exception
             );
         }

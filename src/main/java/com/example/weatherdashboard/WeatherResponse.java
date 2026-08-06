@@ -1,4 +1,4 @@
-package org.example.weatherdashboard;
+package com.example.weatherdashboard;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

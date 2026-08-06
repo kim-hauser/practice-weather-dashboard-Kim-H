@@ -1,4 +1,4 @@
-package org.example.weatherdashboard;
+package com.example.weatherdashboard;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -22,7 +22,6 @@ public class WeatherDashboardApplication implements CommandLineRunner {
 	@Override
 	public void run(String... args) {
 		Scanner scanner = new Scanner(System.in);
-
 		boolean running = true;
 
 		while (running) {
@@ -31,21 +30,33 @@ public class WeatherDashboardApplication implements CommandLineRunner {
 			System.out.print("Choose a city: ");
 			String choice = scanner.nextLine();
 
-			String city = switch (choice) {
-				case "1" -> "St. Louis,MO,US";
-				case "2" -> "Chicago,IL,US";
-				case "3" -> "Nashville,TN,US";
-				case "4" -> null;
-				default -> "";
-			};
+			switch (choice) {
+				case "1" -> displayWeather(
+						"St. Louis",
+						38.6270,
+						-90.1994
+				);
 
-			if (city == null) {
-				running = false;
-				System.out.println("Have a great day!");
-			} else if (city.isBlank()) {
-				System.out.println("Please enter a valid menu option.");
-			} else {
-				displayWeather(city);
+				case "2" -> displayWeather(
+						"Chicago",
+						41.8781,
+						-87.6298
+				);
+
+				case "3" -> displayWeather(
+						"Nashville",
+						36.1627,
+						-86.7816
+				);
+
+				case "4" -> {
+					running = false;
+					System.out.println("Have a great day!");
+				}
+
+				default -> System.out.println(
+						"Please enter a valid menu option."
+				);
 			}
 		}
 
@@ -62,12 +73,19 @@ public class WeatherDashboardApplication implements CommandLineRunner {
 		System.out.println();
 	}
 
-	private void displayWeather(String city) {
+	private void displayWeather(
+			String cityName,
+			double latitude,
+			double longitude
+	) {
 		try {
 			WeatherResponse response =
-					weatherService.getCurrentWeather(city);
+					weatherService.getCurrentWeather(
+							latitude,
+							longitude
+					);
 
-			if (response == null) {
+			if (response == null || response.getMain() == null) {
 				System.out.println("No weather data was returned.");
 				return;
 			}
@@ -76,20 +94,25 @@ public class WeatherDashboardApplication implements CommandLineRunner {
 
 			if (response.getWeather() != null
 					&& !response.getWeather().isEmpty()) {
-				description =
-						response.getWeather().get(0).getDescription();
+				description = response
+						.getWeather()
+						.getFirst()
+						.getDescription();
 			}
 
 			System.out.println();
 			System.out.println("--- Current Weather ---");
-			System.out.println("City: " + response.getName());
+			System.out.println("City: " + cityName);
+
 			System.out.printf(
 					"Temperature: %.1f°F%n",
 					response.getMain().getTemp()
 			);
+
 			System.out.println(
 					"Conditions: " + capitalize(description)
 			);
+
 			System.out.println(
 					"Humidity: "
 							+ response.getMain().getHumidity()
@@ -98,10 +121,13 @@ public class WeatherDashboardApplication implements CommandLineRunner {
 
 		} catch (RuntimeException exception) {
 			System.out.println();
-			System.out.println("Could not retrieve the weather.");
 			System.out.println(
-					"Check the city, internet connection, and API key."
+					"Could not retrieve weather for "
+							+ cityName
+							+ "."
 			);
+
+			exception.printStackTrace();
 		}
 	}
 
